@@ -3,14 +3,14 @@
   // Explicit encounters: rocks, Hunters, Weavers, Bulwarks, Snipers, boss,
   // then timed events [seconds, kind (drift/mine/reinforcement), count].
   const defs = [
-    { name: 'FIRST LIGHT', mix: [2, 0, 0, 0, 0], events: [] },
-    { name: 'HUNTING GROUND', mix: [2, 2, 0, 0, 0], events: [[10, 0, 2]] },
-    { name: 'GREEN STREAKS', mix: [2, 1, 2, 0, 0], events: [[12, 2, 2]] },
-    { name: 'IRON ORBIT', mix: [2, 2, 1, 1, 0], events: [[10, 1, 4]] },
-    { name: 'DEAD SIGHT', mix: [2, 1, 2, 1, 1], events: [[9, 0, 3]] },
-    { name: 'THE GAUNTLET', mix: [3, 2, 3, 1, 1], events: [[8, 1, 5], [19, 2, 2]] },
+    { name: 'FIRST LIGHT', mix: [0, 3, 0, 0, 0], events: [] },
+    { name: 'HUNTING GROUND', mix: [0, 4, 0, 0, 0], events: [] },
+    { name: 'GREEN STREAKS', mix: [0, 5, 0, 0, 0], events: [] },
+    { name: 'IRON ORBIT', mix: [2, 2, 1, 0, 0], events: [[10, 1, 4]] },
+    { name: 'DEAD SIGHT', mix: [2, 1, 2, 0, 0], events: [[9, 0, 3]] },
+    { name: 'THE GAUNTLET', mix: [3, 2, 3, 1, 0], events: [[8, 1, 5], [19, 2, 2]] },
     { name: 'SENTINEL CORE', mix: [1, 1, 0, 0, 0], boss: 1, events: [[14, 0, 2]] },
-    { name: 'SHATTERED GATE', mix: [3, 2, 3, 2, 0], events: [[9, 0, 4], [20, 1, 4]] },
+    { name: 'SHATTERED GATE', mix: [3, 2, 3, 2, 1], events: [[9, 0, 4], [20, 1, 4]] },
     { name: 'CROSSHAIRS', mix: [2, 2, 2, 1, 3], events: [[10, 1, 6]] },
     { name: 'SWARM CURRENT', mix: [2, 2, 6, 1, 1], events: [[8, 2, 3], [18, 0, 3]] },
     { name: 'ARMOR BELT', mix: [3, 2, 2, 4, 1], events: [[12, 1, 6]] },
@@ -85,7 +85,6 @@
       }
       for (let i = 0; i < 4; i++) g.spawn('crystalList', g.random() * g.W, g.random() * g.H, 0);
       if (d.boss) { g.boss = g.bossObject; g.boss.init(g, d.boss); VD.SFX.boss(); }
-      if (d.boss) VD.Background.bossPulse(g);
     },
     update: function (dt, g) {
       g.waveTime += dt;

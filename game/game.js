@@ -10,6 +10,8 @@
   const names = ['bullets', 'ebullets', 'asteroids', 'hunters', 'mines', 'crystalList'];
   const constructors = [VD.Bullet, VD.Bullet, VD.Asteroid, VD.Hunter, VD.Mine, VD.Crystal];
   const capacities = [512, 1400, 256, 128, 96, 512], pools = {};
+  const HITSTOP_MAX = 0.06;
+  let pulsedBossId = 0;
   // Allocate once at boot. Dead objects return to their pool after collision handling.
   for (let i = 0; i < names.length; i++) {
     const pool = pools[names[i]] = [];
@@ -40,6 +42,12 @@
     }
     list.length = write;
   }
+  function bossSpawn(g) {
+    if (!g.boss || g.boss.id === pulsedBossId) return;
+    pulsedBossId = g.boss.id;
+    VD.Background.bossPulse(g);
+    VD.Particles.chromaticPulse();
+  }
   g.reward = function (o, score, credits) {
     g.combo++; g.comboTime = 4;
     g.stats.kills++; g.stats.bestCombo = Math.max(g.stats.bestCombo, g.combo);
@@ -60,7 +68,7 @@
     g.seed = seed == null ? 0x564f4944 : seed >>> 0; g.serial = 0;
     g.runSeed = g.seed; g.scoreRecorded = false;
     VD.Telemetry.reset(g); VD.Background.reset(g.runSeed);
-    g.player = new VD.Player(g); g.boss = null; g.bossDown = false;
+    g.player = new VD.Player(g); g.boss = null; g.bossDown = false; pulsedBossId = 0;
     g.score = 0; g.crystalCount = 0; g.credits = 0; g.wave = 1; g.time = 0;
     g.shake = 0; g.hitStop = 0; g.combo = 0; g.comboTime = 0;
     VD.Particles.reset(); VD.Waves.start(1, g);
@@ -80,6 +88,7 @@
   }
   g.step = function (dt) {
     const p = g.player; if (!p) return;
+    bossSpawn(g);
     g.time += dt; VD.Particles.update(dt); VD.Waves.update(dt, g);
     g.introTime = Math.max(0, g.introTime - dt); g.warningTime = Math.max(0, g.warningTime - dt);
     g.noticeTime = Math.max(0, g.noticeTime - dt); g.comboTime = Math.max(0, g.comboTime - dt);
@@ -167,12 +176,13 @@
     let dt = Math.min(0.2, Math.max(0, (now - last) / 1000)); last = now;
     // Consume exactly 30ms of wall time without advancing simulation or effects.
     if (VD.States.cur === 'PLAYING' && g.hitStop > 0) {
+      g.hitStop = Math.min(g.hitStop, HITSTOP_MAX);
       const frozen = Math.min(dt, g.hitStop); g.hitStop -= frozen; dt -= frozen;
     }
     acc = Math.min(acc + dt, STEP * 5);
     while (acc >= STEP) {
       VD.States.update(STEP, g); VD.Input.clear(); acc -= STEP;
-      if (g.hitStop > 0 && VD.States.cur === 'PLAYING') { acc = 0; break; }
+      if (g.hitStop > 0 && VD.States.cur === 'PLAYING') { g.hitStop = Math.min(g.hitStop, HITSTOP_MAX); acc = 0; break; }
     }
     render();
   }

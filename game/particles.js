@@ -6,9 +6,10 @@
   function random() { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; }
   const labels = [];
   for (let i = 0; i <= 1000; i++) labels.push((i / 10).toFixed(i % 10 ? 1 : 0));
+  const PULSE_TIME = 0.15;
   const P = VD.Particles = {
-    flashA: 0, flashCol: '#fff',
-    reset: function () { for (let i = 0; i < MAX; i++) pool[i].life = 0; cursor = 0; seed = 12345; P.flashA = 0; },
+    flashA: 0, flashCol: '#fff', flashLife: 0, flashPeak: 0,
+    reset: function () { for (let i = 0; i < MAX; i++) pool[i].life = 0; cursor = 0; seed = 12345; P.flashA = 0; P.flashLife = 0; },
     add: function (x, y, vx, vy, life, size, color, drag, text) {
       const p = pool[cursor]; cursor = (cursor + 1) % MAX;
       p.x = x; p.y = y; p.vx = vx; p.vy = vy; p.life = life; p.max = life;
@@ -38,14 +39,22 @@
       P.add(o.x - Math.cos(a) * o.r, o.y - Math.sin(a) * o.r, -Math.cos(a) * 60, -Math.sin(a) * 60, 0.28, 3 * scale, color, 2);
     },
     sparkle: function (x, y, color) { P.sparks(x, y, color, 6, 80, 0.6); },
-    flash: function (color, alpha) { P.flashCol = color; P.flashA = Math.max(P.flashA, alpha); },
+    flash: function (color, alpha) { P.flashCol = color; P.flashA = Math.max(P.flashA, alpha); P.flashLife = 0; },
+    chromaticPulse: function () {
+      P.flashCol = '#e879f9'; P.flashA = 0.6; P.flashPeak = 0.6; P.flashLife = PULSE_TIME;
+    },
     update: function (dt) {
       for (let i = 0; i < MAX; i++) {
         const p = pool[i]; if (p.life <= 0) continue;
         p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt;
         const d = Math.exp(-p.drag * dt); p.vx *= d; p.vy *= d;
       }
-      P.flashA = Math.max(0, P.flashA - dt * 2.4);
+      if (P.flashLife > 0) {
+        P.flashLife = Math.max(0, P.flashLife - dt);
+        P.flashA = P.flashPeak * P.flashLife / PULSE_TIME;
+      } else {
+        P.flashA = Math.max(0, P.flashA - dt * 2.4);
+      }
     },
     draw: function (ctx, g) {
       ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center';

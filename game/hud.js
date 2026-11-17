@@ -8,8 +8,11 @@
       el.hull = document.getElementById('hull-fill');
       el.shield = document.getElementById('shield-fill');
       el.score = document.getElementById('score');
+      el.combo = document.getElementById('combo');
       el.crystals = document.getElementById('crystals');
       el.wave = document.getElementById('wave');
+      el.weaponSlots = [0, 1, 2, 3, 4].map(i => document.getElementById('weapon-' + i));
+      el.weaponTier = document.getElementById('weapon-tier');
       el.bossWrap = document.getElementById('boss-wrap');
       el.bossFill = document.getElementById('boss-fill');
       el.bossName = document.getElementById('boss-name');
@@ -28,10 +31,14 @@
       el.hull.style.width = (hf * 100).toFixed(1) + '%';
       el.hull.style.background = hf < 0.3 ? '#f43f5e' : hf < 0.6 ? '#fbbf24' : '#22d3ee';
       el.shield.style.width = Math.max(0, (p.shield / p.maxShield) * 100).toFixed(1) + '%';
-      el.score.textContent = g.score + ' · ×' + Math.min(5, 1 + Math.floor(g.combo / 5));
+      el.score.textContent = String(g.score);
+      el.combo.textContent = g.combo > 0 ? 'COMBO ×' + Math.min(5, 1 + Math.floor(g.combo / 5)) : '';
       el.crystals.textContent = g.crystalCount + ' · ' + g.credits + ' CR';
-      el.wave.textContent = g.wave;
-      el.wave.textContent += '/20 · ' + VD.Upgrade.names[p.weapon] + ' T' + p.tiers[p.weapon];
+      el.wave.textContent = g.wave + '/20';
+      for (let i = 0; i < el.weaponSlots.length; i++) {
+        el.weaponSlots[i].className = 'weapon-slot' + (p.tiers[i] ? ' owned' : '') + (p.weapon === i ? ' active' : '');
+      }
+      el.weaponTier.textContent = 'T' + p.tiers[p.weapon];
 
       if (g.boss && !g.boss.entering) {
         el.bossWrap.style.display = 'block';

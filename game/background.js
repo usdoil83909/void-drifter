@@ -25,23 +25,24 @@ function reset(seed) {
   offsetX = 0;
   offsetY = 0;
   pulse = 0;
-  for (let depth = 0; depth < 3; depth++) {
+  for (let depth = 0; depth < 2; depth++) {
     const stars = [];
-    const count = 110 - depth * 30;
+    const count = depth === 0 ? 150 : 80;
     for (let i = 0; i < count; i++) {
       stars.push({
         x: random(),
         y: random(),
         phase: random() * TAU,
         size: 0.6 + depth * 0.45 + random() * 0.6,
-        brightness: 0.25 + random() * 0.5,
+        brightness: (depth === 0 ? 0.2 : 0.35) + random() * (depth === 0 ? 0.4 : 0.5),
         warm: random() > 0.84
       });
     }
     layers.push({
       stars,
-      drift: 3 + depth * 7,
-      parallax: 0.025 + depth * 0.045
+      driftX: depth === 0 ? 2 : 9,
+      driftY: depth === 0 ? 5 : 18,
+      parallax: depth === 0 ? 0.03 : 0.11
     });
   }
 }
@@ -93,12 +94,12 @@ function draw(ctx, g) {
     'rgba(129,83,36,0.12)');
   layers.forEach((layer, index) => {
     for (const star of layer.stars) {
-      const x = wrap(star.x * w - offsetX * layer.parallax, w);
-      const y = wrap(star.y * h + t * layer.drift - offsetY * layer.parallax, h);
+      const x = wrap(star.x * w + t * layer.driftX - offsetX * layer.parallax, w);
+      const y = wrap(star.y * h + t * layer.driftY - offsetY * layer.parallax, h);
       ctx.globalAlpha = star.brightness * (0.8 + Math.sin(t * 0.7 + star.phase) * 0.2);
       ctx.fillStyle = star.warm ? '#ffe0a0' : '#b9e9ff';
       ctx.fillRect(x, y, star.size, star.size);
-      if (index === 2 && star.brightness > 0.65) {
+      if (index === 1 && star.brightness > 0.65) {
         ctx.globalAlpha *= 0.28;
         ctx.fillRect(x - 2, y + star.size / 2, star.size + 4, 0.7);
         ctx.fillRect(x + star.size / 2, y - 2, 0.7, star.size + 4);

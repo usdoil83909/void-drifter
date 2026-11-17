@@ -2,6 +2,7 @@
   const VD = (window.VD = window.VD || {});
   const TAU = Math.PI * 2;
   const COLORS = ['#f472b6', '#4ade80', '#fb923c', '#a78bfa'];
+  const SNIPE_TELEGRAPH = 0.8;
   function wrap(o, g) {
     if (o.x < -o.r) o.x = g.W + o.r;
     else if (o.x > g.W + o.r) o.x = -o.r;
@@ -268,10 +269,10 @@
           } else { this.state = 0; this.timer = 2.4; }
         }
       } else {
-        // Retreat/seek -> locked, visible 1.2s charge -> hitscan -> cooldown.
+        // Retreat/seek -> locked, visible 0.8s warning -> hitscan -> cooldown.
         forward = this.state === 0 ? (d < 330 ? -125 : d > 460 ? 85 : 0) : 0;
         if (this.state === 0 && this.timer <= 0 && this.x > 0 && this.x < g.W && this.y > 0 && this.y < g.H) {
-          this.state = 1; this.timer = 1.2; this.lock = this.angle;
+          this.state = 1; this.timer = SNIPE_TELEGRAPH; this.lock = this.angle;
         } else if (this.state === 1 && this.timer <= 0) {
           this.state = 2; this.timer = 1.5; this.beam = 0.18;
           if (rayHit(this, g.player, this.lock, 5)) g.player.damage(24);
@@ -305,10 +306,13 @@
     draw(ctx) {
       ctx.save();
       if (this.type === 3 && (this.state === 1 || this.beam > 0)) {
-        ctx.strokeStyle = this.beam > 0 ? '#ffffff' : this.color;
-        ctx.globalAlpha = this.beam > 0 ? 1 : 0.35 + (1 - this.timer / 1.2) * 0.6;
-        ctx.lineWidth = this.beam > 0 ? 9 : 1 + (1 - this.timer / 1.2) * 2;
+        const charge = this.state === 1 ? 1 - Math.max(0, this.timer) / SNIPE_TELEGRAPH : 1;
+        ctx.strokeStyle = this.beam > 0 ? '#ffffff' : '#f472b6';
+        ctx.globalAlpha = this.beam > 0 ? 1 : 0.7 + Math.abs(Math.sin(this.t * 18)) * 0.3;
+        ctx.lineWidth = this.beam > 0 ? 9 : 3 + charge * 4;
+        ctx.shadowColor = '#f472b6'; ctx.shadowBlur = this.beam > 0 ? 22 : 14;
         ctx.beginPath(); ctx.moveTo(this.x, this.y); ctx.lineTo(this.x + Math.cos(this.lock) * 4000, this.y + Math.sin(this.lock) * 4000); ctx.stroke();
+        ctx.shadowBlur = 0;
       }
       ctx.globalAlpha = 1; ctx.translate(this.x, this.y); ctx.rotate(this.type === 2 ? this.t * 0.3 : this.angle);
       ctx.strokeStyle = this.flash > 0 ? '#ffffff' : this.color; ctx.fillStyle = '#131e32';

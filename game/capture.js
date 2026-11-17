@@ -14,6 +14,10 @@ function prepare(name, seed, g) {
   for (const list of ['bullets', 'ebullets', 'asteroids', 'hunters', 'mines', 'crystalList']) g.clearList(list);
   VD.Waves.start(name === 'boss' ? 7 : 3, g);
   VD.States.set('PLAYING', g);
+  if (name !== 'boss') {
+    const anchor = g.hunters.filter(enemy => !enemy.dead).pop();
+    if (anchor) anchor.hp = 1000;
+  }
   const player = g.player;
   player.tiers[1] = 2;
   player.weapon = 1;

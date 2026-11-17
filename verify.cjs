@@ -46,7 +46,7 @@ assert.equal(weaver.state, 2);
 setup(); g.player.x = 600; g.player.y = 200; g.player.invuln = 0;
 const sniper = g.spawn('hunters', 200, 200, 3); sniper.timer = 0;
 sniper.update(1 / 60, g); assert.equal(sniper.state, 1);
-for (let i = 0; i < 71; i++) sniper.update(1 / 60, g);
+for (let i = 0; i < 47; i++) sniper.update(1 / 60, g);
 assert.equal(g.player.hull, 100, 'No laser damage before charge completes');
 sniper.update(1 / 60, g); assert.equal(g.player.hull, 76, 'Hitscan must damage along locked ray');
 g.player.invuln = 0; g.player.y = 350; sniper.state = 1; sniper.timer = 0; sniper.lock = 0;

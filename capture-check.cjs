@@ -97,7 +97,7 @@ async function main() {
     // Observe actual displacement across fixed updates, independently of screenshots.
     const movement = await page.evaluate(() => {
       VD.g.reset(1234); VD.States.set('PLAYING', VD.g);
-      const enemy = VD.g.asteroids[0], before = [enemy.x, enemy.y];
+      const enemy = VD.g.hunters[0], before = [enemy.x, enemy.y];
       for (let i = 0; i < 60; i++) VD.g.step(1 / 60);
       return { before, after: [enemy.x, enemy.y] };
     });

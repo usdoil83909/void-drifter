@@ -20,13 +20,25 @@
       <div class="bar"><div id="shield-fill" class="bar-fill shield"></div></div>
     </div>
     <div class="hud-spacer"></div>
-    <div class="hud-stat">SCORE <span id="score">0</span></div>
     <div class="hud-stat">CRYSTALS <span id="crystals">0</span></div>
-    <div class="hud-stat">WAVE <span id="wave">1</span></div>
+    <div class="hud-stat">WAVE <span id="wave">1/20</span></div>
+  </div>
+  <div id="score-wrap">
+    <div class="hud-label">SCORE</div>
+    <div id="score">0</div>
+    <div id="combo"></div>
   </div>
   <div id="boss-wrap" class="boss-wrap" style="display:none">
     <div id="boss-name" class="hud-label">BOSS</div>
     <div class="bar boss"><div id="boss-fill" class="bar-fill boss"></div></div>
+  </div>
+  <div id="weapon-bar" aria-label="Weapon bar">
+    <span class="weapon-slot" id="weapon-0">1 PULSE</span>
+    <span class="weapon-slot" id="weapon-1">2 SCATTER</span>
+    <span class="weapon-slot" id="weapon-2">3 LANCE</span>
+    <span class="weapon-slot" id="weapon-3">4 SWARM</span>
+    <span class="weapon-slot" id="weapon-4">5 RAIL</span>
+    <span class="weapon-tier" id="weapon-tier">T1</span>
   </div>
 </div>
 

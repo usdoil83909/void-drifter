@@ -46,9 +46,51 @@ html,body{
 .hud-spacer{flex:1;}
 .hud-stat{color:#94a3b8;white-space:nowrap;}
 .hud-stat span{color:var(--cyan);font-weight:bold;text-shadow:0 0 8px var(--cyan);}
-.boss-wrap{width:min(560px,72vw);align-self:center;margin-top:6px;}
+#score-wrap{
+  position:absolute;
+  top:6px;
+  left:50%;
+  transform:translateX(-50%);
+  text-align:center;
+  line-height:1;
+}
+#score-wrap .hud-label{margin-bottom:4px;color:#67e8f9;}
+#score{
+  font-size:clamp(32px,4.6vw,52px);
+  font-weight:bold;
+  letter-spacing:3px;
+  color:var(--cyan);
+  text-shadow:0 0 12px var(--cyan),0 0 34px rgba(34,211,238,0.75);
+}
+#combo{min-height:14px;margin-top:3px;font-size:11px;letter-spacing:2px;color:var(--amber);text-shadow:0 0 8px rgba(251,191,36,0.7);}
+.boss-wrap{position:absolute;top:88px;left:50%;transform:translateX(-50%);width:min(560px,72vw);}
 .bar.boss{height:14px;border-color:rgba(232,121,249,0.5);}
 .bar-fill.boss{background:linear-gradient(90deg,var(--magenta),var(--amber));box-shadow:0 0 14px var(--magenta);}
+#weapon-bar{
+  position:absolute;
+  bottom:14px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 10px;
+  border:1px solid rgba(34,211,238,0.22);
+  border-radius:8px;
+  background:rgba(11,16,32,0.55);
+  white-space:nowrap;
+}
+.weapon-slot{
+  padding:3px 7px;
+  border:1px solid rgba(148,163,184,0.22);
+  border-radius:4px;
+  color:#475569;
+  font-size:11px;
+  letter-spacing:1px;
+}
+.weapon-slot.owned{color:#94a3b8;border-color:rgba(148,163,184,0.5);}
+.weapon-slot.active{color:var(--cyan);border-color:var(--cyan);background:rgba(34,211,238,0.14);box-shadow:0 0 12px rgba(34,211,238,0.45);text-shadow:0 0 8px var(--cyan);}
+.weapon-tier{color:var(--amber);font-size:11px;font-weight:bold;letter-spacing:1px;}
 
 #warning{
   position:fixed;
@@ -154,6 +196,11 @@ td,th{padding:7px;border-bottom:1px solid #263751;}.improved{color:#4ade80;}
 @media(max-width:700px){
   #hud{padding:10px;font-size:10px;letter-spacing:0;}
   .hud-block{width:100px;}.hud-spacer{display:none;}
-  .boss-wrap{width:90vw;}.shop{padding:16px;max-height:80vh;}
+  #score{font-size:32px;letter-spacing:1px;}
+  .boss-wrap{top:78px;width:90vw;}
+  #weapon-bar{gap:2px;padding:4px 5px;bottom:8px;}
+  .weapon-slot{font-size:8px;padding:2px 3px;letter-spacing:0;}
+  .weapon-tier{font-size:9px;}
+  .shop{padding:16px;max-height:80vh;}
   .shop .stat{font-size:12px;}.shop-items{gap:4px;}
 }
