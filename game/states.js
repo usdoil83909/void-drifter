@@ -13,7 +13,7 @@
     set: function (s, g) {
       States.cur = s;
       States.timer = 0;
-      VD.HUD.show(s === 'PLAYING' || s === 'PAUSED' || s === 'WAVE_CLEAR');
+      VD.HUD.show(s === 'PLAYING' || s === 'PAUSED' || s === 'WAVE_CLEAR' || s === 'SHOP');
 
       if (s === 'TITLE') {
         overlay.innerHTML =
@@ -24,6 +24,7 @@
           '<div><b>W</b> / <b>&uarr;</b> thrust</div>' +
           '<div><b>A</b> <b>D</b> / <b>&larr;</b> <b>&rarr;</b> rotate</div>' +
           '<div><b>SPACE</b> fire</div>' +
+          '<div><b>1–5</b> equip weapon</div>' +
           '<div><b>SHIFT</b> shield</div>' +
           '<div><b>P</b> pause</div>' +
           '<div><b>M</b> mute</div>' +
@@ -38,6 +39,8 @@
           '</div>';
       } else if (s === 'WAVE_CLEAR') {
         overlay.innerHTML = '<div class="banner">WAVE ' + g.wave + ' CLEAR</div>';
+      } else if (s === 'SHOP') {
+        VD.Upgrade.open(g);
       } else if (s === 'GAMEOVER') {
         overlay.innerHTML =
           '<div class="panel">' +
@@ -52,7 +55,7 @@
           '<div class="panel">' +
           '<h1 class="glow-title amber">VICTORY</h1>' +
           '<p class="stat">TOTAL SCORE <b>' + g.score + '</b></p>' +
-          '<p class="stat">GUARDIAN DESTROYED</p>' +
+          '<p class="stat">VOID SOVEREIGN DESTROYED — ALL 20 WAVES CLEARED</p>' +
           '<p class="start-hint">PRESS <b>ENTER</b> TO PLAY AGAIN</p>' +
           '</div>';
       } else {
@@ -64,8 +67,7 @@
 
     update: function (dt, g) {
       const I = VD.Input;
-      g.time += dt;
-      VD.Particles.update(dt);
+      if (States.cur === 'TITLE') { g.time += dt; VD.Particles.update(dt); }
 
       if (I.hit('m')) VD.SFX.toggleMute();
 
@@ -81,9 +83,7 @@
         } else {
           g.step(dt);
           if (States.cur === 'PLAYING') {
-            if (g.bossDown) {
-              States.set('VICTORY', g);
-            } else if (g.asteroids.length === 0 && g.hunters.length === 0 && !g.boss) {
+            if (VD.Waves.complete(g)) {
               if (g.wave >= VD.Waves.count) States.set('VICTORY', g);
               else {
                 States.set('WAVE_CLEAR', g);
@@ -96,11 +96,12 @@
         if (I.hit('p') || I.hit('Enter')) States.set('PLAYING', g);
       } else if (States.cur === 'WAVE_CLEAR') {
         States.timer += dt;
-        g.step(dt);
+        VD.Particles.update(dt);
         if (States.timer > 2.2) {
-          VD.Waves.start(g.wave + 1, g);
-          States.set('PLAYING', g);
+          States.set('SHOP', g);
         }
+      } else if (States.cur === 'SHOP') {
+        VD.Upgrade.update(g);
       } else if (States.cur === 'GAMEOVER' || States.cur === 'VICTORY') {
         if (I.hit('Enter')) {
           g.reset();

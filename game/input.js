@@ -51,7 +51,7 @@
       return false;
     },
     clear: function () {
-      Input.pressed = {};
+      for (const k in Input.pressed) Input.pressed[k] = false;
     }
   });
 })();

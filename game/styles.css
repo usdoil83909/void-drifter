@@ -119,3 +119,17 @@ html,body{
   animation:pop .4s ease-out;
 }
 @keyframes pop{from{transform:scale(0.7);opacity:0;}to{transform:scale(1);opacity:1;}}
+.shop{width:680px;max-height:88vh;overflow:auto;pointer-events:auto;padding:22px 30px;font-size:12px;}
+.shop .glow-title{font-size:clamp(24px,5vw,38px);letter-spacing:4px;}
+.shop-items{text-align:left;margin:14px 0;display:grid;gap:10px;}
+.shop-items p{padding:8px 12px;border-left:2px solid var(--cyan);background:rgba(34,211,238,0.06);line-height:1.5;color:#94a3b8;}
+.shop-items b{color:#e2e8f0;}
+.shop-message{min-height:28px;padding:9px 0;color:var(--amber);}
+.hud-row{flex-wrap:wrap;gap:10px 16px;}
+#boss-name{color:#e2e8f0;line-height:1.4;}
+@media(max-width:700px){
+  #hud{padding:10px;font-size:10px;letter-spacing:0;}
+  .hud-block{width:100px;}.hud-spacer{display:none;}
+  .boss-wrap{width:90vw;}.shop{padding:16px;max-height:80vh;}
+  .shop .stat{font-size:12px;}.shop-items{gap:4px;}
+}
