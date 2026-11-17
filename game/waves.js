@@ -44,6 +44,7 @@
       }
       for (let i = 0; i < 4; i++) g.spawn('crystalList', g.random() * g.W, g.random() * g.H, 0);
       if (d.boss) { g.boss = g.bossObject; g.boss.init(g, d.boss); VD.SFX.boss(); }
+      if (d.boss) VD.Background.bossPulse(g);
     },
     update: function (dt, g) {
       g.waveTime += dt;

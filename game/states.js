@@ -59,7 +59,7 @@
         if (!target || VD.g.capture) return;
         if (target.dataset.action) action(target.dataset.action, VD.g);
         if (target.dataset.buy !== undefined) VD.Upgrade.buy(VD.g, Number(target.dataset.buy));
-        if (target.dataset.sell !== undefined) VD.Upgrade.sell(VD.g, Number(target.dataset.sell));
+        // Shop purchases and re-rolls share the keyboard transaction guards in Upgrade; no orphaned sell action remains.
       });
       overlay.addEventListener('input', function (event) {
         if (!VD.g.capture && event.target.dataset.setting) VD.Settings.input(event.target);

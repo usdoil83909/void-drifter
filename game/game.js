@@ -26,6 +26,7 @@
   g.fire = function (x, y, angle, speed, friendly, damage, pierce, color, kind) {
     const name = friendly ? 'bullets' : 'ebullets', pool = pools[name]; if (!pool.length) return;
     const b = pool.pop(); b.init(g, x, y, angle, speed, friendly, damage, pierce, color, kind); g[name].push(b);
+    if (friendly) g.stats.shots++;
   };
   g.clearList = function (name) {
     const list = g[name], pool = pools[name];
@@ -41,6 +42,7 @@
   }
   g.reward = function (o, score, credits) {
     g.combo++; g.comboTime = 4;
+    g.stats.kills++; g.stats.bestCombo = Math.max(g.stats.bestCombo, g.combo);
     g.score += score * Math.min(5, 1 + Math.floor(g.combo / 5)); g.credits += credits;
     const roll = g.random();
     if (roll < 0.52) g.spawn('crystalList', o.x, o.y, roll < 0.10 ? 1 : roll < 0.20 ? 2 : 0);
@@ -50,11 +52,14 @@
     g.W = window.innerWidth; g.H = window.innerHeight;
     canvas.width = Math.floor(g.W * dpr); canvas.height = Math.floor(g.H * dpr);
     canvas.style.width = g.W + 'px'; canvas.style.height = g.H + 'px'; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (g.capture && window.__shotReady) render();
   }
   window.addEventListener('resize', resize);
   g.reset = function (seed) {
     for (let i = 0; i < names.length; i++) g.clearList(names[i]);
     g.seed = seed == null ? 0x564f4944 : seed >>> 0; g.serial = 0;
+    g.runSeed = g.seed; g.scoreRecorded = false;
+    VD.Telemetry.reset(g); VD.Background.reset(g.runSeed);
     g.player = new VD.Player(g); g.boss = null; g.bossDown = false;
     g.score = 0; g.crystalCount = 0; g.credits = 0; g.wave = 1; g.time = 0;
     g.shake = 0; g.hitStop = 0; g.combo = 0; g.comboTime = 0;
@@ -116,16 +121,12 @@
     if (p.hull <= 0) VD.States.set('GAMEOVER', g);
   };
   function background() {
-    ctx.fillStyle = '#0b1020'; ctx.fillRect(0, 0, g.W, g.H);
-    for (let i = 0; i < 70; i++) {
-      ctx.globalAlpha = 0.12 + (i % 5) * 0.05; ctx.fillStyle = '#94a3b8';
-      ctx.fillRect((i * 137.5) % g.W, (i * 97.3 + g.time * (8 + (i % 4) * 4)) % g.H, 1.6, 1.6);
-    }
-    ctx.globalAlpha = 1;
+    VD.Background.draw(ctx, g);
+    VD.Background.drawPulse(ctx, g);
   }
   function render() {
     ctx.save();
-    if (g.shake > 0) ctx.translate(Math.sin(g.time * 131) * g.shake * 0.5, Math.cos(g.time * 173) * g.shake * 0.5);
+    if (VD.Settings.values.shake && g.shake > 0) ctx.translate(Math.sin(g.time * 131) * g.shake * 0.5, Math.cos(g.time * 173) * g.shake * 0.5);
     background(); VD.States.draw(ctx, g);
     if (g.player && VD.States.cur !== 'TITLE') {
       for (let n = names.length - 1; n >= 0; n--) {
@@ -148,7 +149,18 @@
     }
     VD.HUD.update(g);
   }
-  resize(); VD.Input.init(); VD.States.init(); VD.HUD.init(); VD.States.set('TITLE', g);
+  resize(); VD.Input.init(); VD.States.init(); VD.HUD.init();
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('shot')) {
+    const requested = params.get('shot');
+    const shot = ['title', 'play', 'boss', 'gameover'].includes(requested) ? requested : 'title';
+    const seed = params.has('seed') ? Number(params.get('seed')) : 1234;
+    VD.States.prepareShot(shot, Number.isFinite(seed) ? seed : 1234, g);
+    render();
+    requestAnimationFrame(function () { render(); window.__shotReady = true; });
+    return;
+  }
+  VD.States.set('TITLE', g);
   const STEP = 1 / 60; let last = performance.now(), acc = 0;
   function frame(now) {
     requestAnimationFrame(frame);

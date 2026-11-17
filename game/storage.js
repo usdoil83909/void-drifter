@@ -64,7 +64,7 @@ function duration(seconds) {
 }
 
 function table() {
-  const scores = loadScores();
+  const scores = VD.g && VD.g.capture ? [] : loadScores();
   let html = '<section class="records"><h2>LOCAL FLIGHT RECORDS</h2>';
   if (!scores.length) {
     return html + '<p class="muted">No flights recorded. Make your mark in the void.</p></section>';
