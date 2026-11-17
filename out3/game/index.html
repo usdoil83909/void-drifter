@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>VOID DRIFTER</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud">
+  <div class="hud-row">
+    <div class="hud-block">
+      <div class="hud-label">HULL</div>
+      <div class="bar"><div id="hull-fill" class="bar-fill hull"></div></div>
+    </div>
+    <div class="hud-block">
+      <div class="hud-label">SHIELD</div>
+      <div class="bar"><div id="shield-fill" class="bar-fill shield"></div></div>
+    </div>
+    <div class="hud-spacer"></div>
+    <div class="hud-stat">SCORE <span id="score">0</span></div>
+    <div class="hud-stat">CRYSTALS <span id="crystals">0</span></div>
+    <div class="hud-stat">WAVE <span id="wave">1</span></div>
+  </div>
+  <div id="boss-wrap" class="boss-wrap" style="display:none">
+    <div id="boss-name" class="hud-label">BOSS</div>
+    <div class="bar boss"><div id="boss-fill" class="bar-fill boss"></div></div>
+  </div>
+</div>
+
+<div id="warning"></div>
+<div id="overlay"></div>
+
+<!-- Native ES modules; bootstrap declares the complete dependency graph. -->
+<!-- All visuals are drawn locally, without image or font requests. -->
+<!-- Audio starts only after a launch or another explicit interaction. -->
+<!-- Capture routes: ?shot=title|play|boss|gameover&seed=1234 -->
+<!-- A capture freezes after two renders and exposes window.__shotReady. -->
+<!-- Keyboard and accessible buttons share the same state transitions. -->
+<!-- Flight records and preferences are stored only on this device. -->
+<!-- The simulation uses a fixed 60 Hz step on every display. -->
+<script type="module" src="bootstrap.js"></script>
+</body>
+</html>
