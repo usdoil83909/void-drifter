@@ -17,4 +17,6 @@ import './background.js';
 import './telemetry.js';
 import './states.js';
 import './capture.js';
+// Install preview, endless progression and stats before the game initializes.
+import './polish.js';
 import './game.js';

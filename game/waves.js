@@ -24,17 +24,58 @@
     { name: 'EVENT HORIZON', mix: [4, 4, 7, 5, 5], events: [[8, 1, 8], [19, 0, 6], [31, 2, 5]] },
     { name: 'VOID SOVEREIGN', mix: [1, 0, 2, 0, 1], boss: 3, events: [[16, 0, 3], [32, 1, 6], [48, 2, 3]] }
   ];
+  const types = ['Asteroids', 'Hunters', 'Weavers', 'Bulwarks', 'Snipers'];
+  const bosses = ['', 'Sentinel Core', 'Hive Queen', 'Void Sovereign'];
   for (let i = 0; i < defs.length; i++) defs[i].banner = 'WAVE ' + (i + 1) + ' — ' + defs[i].name;
+
+  function definition(n) {
+    if (n <= defs.length) return defs[n - 1];
+    const depth = n - defs.length;
+    const growth = Math.min(8, Math.floor(depth / 3));
+    const name = 'ENDLESS VOID ' + depth;
+    // Bounded populations leave room for asteroid and Bulwark splits and Hive swarms.
+    // Health continues growing after the population limit is reached.
+    return { name: name, banner: 'WAVE ' + n + ' — ' + name,
+      mix: [4, 4 + growth, 7 + growth, 4 + Math.floor(growth / 2), 4 + growth],
+      boss: depth % 5 === 0 ? 1 + (Math.floor(depth / 5) - 1) % 3 : 0,
+      events: [[8, 0, 5], [18, 1, 8 + growth], [28, 2, 5 + growth]] };
+  }
+  function scale(g) { return g.endless ? 1 + Math.max(0, g.wave - 20) * 0.12 : 1; }
   function edge(g, kind, type) {
     const side = (g.random() * 4) | 0;
     const x = side === 1 ? g.W + 12 : side === 3 ? -12 : g.random() * g.W;
     const y = side === 0 ? -12 : side === 2 ? g.H + 12 : g.random() * g.H;
     return g.spawn(kind, x, y, type, kind === 'asteroids' ? 0.6 + g.wave * 0.04 : false);
   }
+  function preview(n, g) {
+    const d = definition(n), counts = d.mix.slice();
+    let mines = 0;
+    for (const event of d.events) {
+      if (event[1] === 0) counts[0] += event[2];
+      else if (event[1] === 1) mines += event[2];
+      else counts[2] += event[2];
+    }
+    const rows = counts.map((count, i) => count ? types[i] + ' × ' + count : '').filter(Boolean);
+    if (mines) rows.push('Mines × ' + mines);
+    if (d.boss) rows.push(bosses[d.boss] + ' × 1');
+    const weight = counts.reduce((sum, count, i) => sum + count * [1, 2, 3, 5, 4][i], mines * 2);
+    const threat = d.boss ? 'BOSS CONTACT' : n > 20 ? 'EXTREME' : weight >= 80 ? 'SEVERE' : weight >= 35 ? 'HIGH' : 'MODERATE';
+    return '<section class="field-manual" aria-label="Wave preview"><h2 class="eyebrow">WAVE PREVIEW · ' + n + ' — ' + d.name + '</h2>' +
+      '<p>' + rows.join(' · ') + '</p><p class="tactic">THREAT: ' + threat +
+      ' · ' + d.events.length + ' timed arrivals' + (g.endless && n > 20 ? ' · Enemy hull ×' + (1 + (n - 20) * 0.12).toFixed(2) : '') + '</p>' +
+      '<p class="muted">Includes scheduled arrivals. Asteroid / Bulwark fragments and boss summons are additional.</p></section>';
+  }
+  // Apply scaling at initialization so reinforcements, split children and summons agree.
+  const hunterInit = VD.Hunter.prototype.init;
+  VD.Hunter.prototype.init = function (...args) { hunterInit.apply(this, args); this.hp *= scale(args[0]); };
+  const bossInit = VD.Boss.prototype.init;
+  VD.Boss.prototype.init = function (...args) {
+    bossInit.apply(this, args); this.maxHp *= scale(args[0]); this.hp = this.maxHp;
+  };
   VD.Waves = {
-    count: defs.length, defs: defs,
+    count: defs.length, defs: defs, definition: definition, preview: preview,
     start: function (n, g) {
-      const d = defs[n - 1];
+      const d = definition(n);
       g.wave = n; g.waveTime = 0; g.eventIndex = 0; g.bossDown = false;
       g.introTime = 3.2; g.noticeTime = 0; g.warningTime = d.boss ? 3.2 : 0;
       g.banner = d.banner; g.combo = 0; g.comboTime = 0;
@@ -48,7 +89,7 @@
     },
     update: function (dt, g) {
       g.waveTime += dt;
-      const events = defs[g.wave - 1].events;
+      const events = definition(g.wave).events;
       // Events remain part of the wave even if the initial enemies die early.
       while (g.eventIndex < events.length && g.waveTime >= events[g.eventIndex][0]) {
         const event = events[g.eventIndex++];
@@ -67,7 +108,7 @@
       }
     },
     complete: function (g) {
-      return g.eventIndex >= defs[g.wave - 1].events.length && !g.asteroids.length && !g.hunters.length && !g.mines.length && !g.boss;
+      return g.eventIndex >= definition(g.wave).events.length && !g.asteroids.length && !g.hunters.length && !g.mines.length && !g.boss;
     }
   };
 })();

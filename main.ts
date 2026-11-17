@@ -30,6 +30,7 @@ const GAME_FILES = new Set([
   'entities.js', 'waves.js', 'armory.js', 'upgrade.js', 'hud.js',
   'bestiary.js', 'story.js', 'background.js', 'telemetry.js', 'states.js',
   'capture.js', 'game.js',
+  'polish.js',
 ]);
 
 function requireDirectory(path: string, label: string): void {

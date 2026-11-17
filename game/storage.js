@@ -25,7 +25,8 @@ function write(key, value) {
 
 function validScore(row) {
   return row && Number.isFinite(row.score) && row.score >= 0 &&
-    Number.isInteger(row.wave) && row.wave >= 1 && row.wave <= 20;
+    Number.isSafeInteger(row.wave) && row.wave >= 1 &&
+    (row.wave <= 20 || row.endless === true);
 }
 
 function loadScores() {
@@ -35,6 +36,7 @@ function loadScores() {
     score: Math.floor(row.score),
     wave: row.wave,
     victory: row.victory === true,
+    endless: row.endless === true,
     seconds: Number.isFinite(row.seconds) ? Math.max(0, row.seconds) : 0,
     seed: Number.isInteger(row.seed) ? row.seed >>> 0 : 0
   })).sort((a, b) => b.score - a.score || b.wave - a.wave).slice(0, 5);
@@ -49,6 +51,7 @@ function submit(g, victory) {
     score: Math.floor(g.score),
     wave: g.wave,
     victory: Boolean(victory),
+    endless: g.endless === true,
     seconds: g.time,
     seed: g.runSeed
   });
@@ -70,12 +73,13 @@ function table() {
     return html + '<p class="muted">No flights recorded. Make your mark in the void.</p></section>';
   }
   html += '<table><thead><tr><th scope="col">RANK</th>';
-  html += '<th scope="col">SCORE</th><th scope="col">WAVE</th>';
+  html += '<th scope="col">SCORE</th><th scope="col">WAVE / MODE</th>';
   html += '<th scope="col">TIME</th></tr></thead><tbody>';
   scores.forEach((row, index) => {
     html += '<tr><td>' + String(index + 1).padStart(2, '0') + '</td>';
     html += '<td>' + row.score.toLocaleString('en-US') + '</td>';
-    html += '<td>' + row.wave + (row.victory ? ' ★' : '') + '</td>';
+    html += '<td>' + row.wave + (row.victory ? ' ★' : '') +
+      (row.endless ? ' · ENDLESS' : '') + '</td>';
     html += '<td>' + duration(row.seconds) + '</td></tr>';
   });
   return html + '</tbody></table></section>';
