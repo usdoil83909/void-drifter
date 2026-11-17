@@ -13,6 +13,11 @@
     mouse: { x: 0, y: 0, down: false, moved: false },
     init: function () {
       window.addEventListener('keydown', function (e) {
+        if (window.VD.g && window.VD.g.capture) return;
+        const tag = e.target && e.target.tagName;
+        if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+        // Buttons handle Enter/Space themselves; do not also queue a game action.
+        if (tag === 'BUTTON' && (e.key === 'Enter' || e.key === ' ')) return;
         const k = norm(e.key);
         if (!keys[k]) Input.pressed[k] = true;
         keys[k] = true;
@@ -23,6 +28,10 @@
       });
       window.addEventListener('blur', function () {
         for (const k in keys) keys[k] = false;
+        Input.mouse.down = false;
+        Input.clear();
+        const g = window.VD.g;
+        if (g && !g.capture && VD.States.cur === 'PLAYING') VD.States.set('PAUSED', g);
       });
       window.addEventListener('mousemove', function (e) {
         Input.mouse.x = e.clientX;
@@ -52,6 +61,11 @@
     },
     clear: function () {
       for (const k in Input.pressed) Input.pressed[k] = false;
+    },
+    release: function () {
+      for (const k in keys) keys[k] = false;
+      Input.mouse.down = false;
+      Input.clear();
     }
   });
 })();

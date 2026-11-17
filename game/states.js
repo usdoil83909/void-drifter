@@ -1,6 +1,52 @@
 (function () {
   const VD = (window.VD = window.VD || {});
   let overlay = null;
+  let returnState = 'TITLE';
+
+  function button(action, text) {
+    return '<button data-action="' + action + '">' + text + '</button>';
+  }
+
+  function menuActions() {
+    return '<div class="menu-actions">' +
+      button('help', 'HELP / H') +
+      button('settings', 'SETTINGS / O') +
+      button('scores', 'RECORDS / L') + '</div>';
+  }
+
+  function begin(g, story) {
+    VD.SFX.resume();
+    g.reset();
+    States.set(story ? 'STORY' : 'PLAYING', g);
+  }
+
+  function openMenu(name, g) {
+    returnState = States.cur;
+    States.set(name, g);
+  }
+
+  function action(name, g) {
+    if (g.capture) return;
+    VD.SFX.resume();
+    if (name === 'launch') begin(g, true);
+    else if (name === 'resume') States.set('PLAYING', g);
+    else if (name === 'restart') begin(g, false);
+    else if (name === 'title') States.set('TITLE', g);
+    else if (name === 'help') openMenu('HELP', g);
+    else if (name === 'settings') openMenu('SETTINGS', g);
+    else if (name === 'scores') openMenu('SCORES', g);
+    else if (name === 'back') States.set(returnState, g);
+    else if (name === 'help-prev') VD.Bestiary.change(-1);
+    else if (name === 'help-next') VD.Bestiary.change(1);
+    else if (name === 'story-next') VD.Story.advance(g);
+    else if (name === 'story-skip') VD.Story.launch(g);
+    else if (name === 'mute') {
+      VD.SFX.toggleMute();
+      States.set(States.cur, g);
+    } else if (name === 'shop-page') VD.Upgrade.buy(g, 5);
+    else if (name === 'shop-reroll') VD.Upgrade.reroll(g);
+    else if (name === 'shop-launch') VD.Upgrade.launch(g);
+  }
 
   const States = {
     cur: 'TITLE',
@@ -8,11 +54,24 @@
 
     init: function () {
       overlay = document.getElementById('overlay');
+      overlay.addEventListener('click', function (event) {
+        const target = event.target.closest('button');
+        if (!target || VD.g.capture) return;
+        if (target.dataset.action) action(target.dataset.action, VD.g);
+        if (target.dataset.buy !== undefined) VD.Upgrade.buy(VD.g, Number(target.dataset.buy));
+        if (target.dataset.sell !== undefined) VD.Upgrade.sell(VD.g, Number(target.dataset.sell));
+      });
+      overlay.addEventListener('input', function (event) {
+        if (!VD.g.capture && event.target.dataset.setting) VD.Settings.input(event.target);
+      });
     },
 
     set: function (s, g) {
       States.cur = s;
       States.timer = 0;
+      const audioMode = s === 'PLAYING' ? (g.boss ? 'boss' : 'play') :
+        s === 'PAUSED' || s === 'SETTINGS' || s === 'HELP' || s === 'SCORES' ? 'paused' : s.toLowerCase();
+      VD.Music.setMode(audioMode);
       VD.HUD.show(s === 'PLAYING' || s === 'PAUSED' || s === 'WAVE_CLEAR' || s === 'SHOP');
 
       if (s === 'TITLE') {
@@ -30,11 +89,19 @@
           '<div><b>M</b> mute</div>' +
           '</div>' +
           '<p class="start-hint">PRESS <b>ENTER</b> TO LAUNCH</p>' +
+          '<div class="menu-actions">' + button('launch', 'BEGIN FLIGHT') + '</div>' +
+          menuActions() +
+          '<p class="title-footer">20 SECTORS · 5 WEAPONS · ONE SIGNAL TO SILENCE</p>' +
           '</div>';
       } else if (s === 'PAUSED') {
         overlay.innerHTML =
           '<div class="panel">' +
           '<h1 class="glow-title">PAUSED</h1>' +
+          '<p class="stat">WAVE ' + g.wave + ' · ' + g.score + ' POINTS</p>' +
+          '<div class="menu-actions">' + button('resume', 'RESUME') +
+          button('restart', 'RESTART / R') +
+          button('mute', VD.SFX.isMuted() ? 'UNMUTE / M' : 'MUTE / M') + '</div>' +
+          menuActions() +
           '<p class="start-hint">PRESS <b>P</b> OR <b>ENTER</b> TO RESUME</p>' +
           '</div>';
       } else if (s === 'WAVE_CLEAR') {
@@ -42,43 +109,71 @@
       } else if (s === 'SHOP') {
         VD.Upgrade.open(g);
       } else if (s === 'GAMEOVER') {
+        VD.Storage.submit(g, false);
         overlay.innerHTML =
           '<div class="panel">' +
           '<h1 class="glow-title red">GAME OVER</h1>' +
           '<p class="stat">SCORE <b>' + g.score + '</b></p>' +
           '<p class="stat">WAVE REACHED <b>' + g.wave + '</b></p>' +
+          VD.Telemetry.summary(g) +
+          VD.Storage.table() +
+          '<div class="menu-actions">' + button('restart', 'RETRY') + button('title', 'TITLE') + '</div>' +
           '<p class="start-hint">PRESS <b>ENTER</b> TO RETRY</p>' +
           '</div>';
         VD.SFX.gameOver();
       } else if (s === 'VICTORY') {
+        VD.Storage.submit(g, true);
         overlay.innerHTML =
           '<div class="panel">' +
           '<h1 class="glow-title amber">VICTORY</h1>' +
           '<p class="stat">TOTAL SCORE <b>' + g.score + '</b></p>' +
           '<p class="stat">VOID SOVEREIGN DESTROYED — ALL 20 WAVES CLEARED</p>' +
+          VD.Telemetry.summary(g) +
+          VD.Storage.table() +
+          '<div class="menu-actions">' + button('restart', 'FLY AGAIN') + button('title', 'TITLE') + '</div>' +
           '<p class="start-hint">PRESS <b>ENTER</b> TO PLAY AGAIN</p>' +
           '</div>';
+      } else if (s === 'STORY') {
+        VD.Story.start();
+      } else if (s === 'HELP') {
+        VD.Bestiary.open();
+      } else if (s === 'SETTINGS') {
+        overlay.innerHTML = VD.Settings.markup();
+      } else if (s === 'SCORES') {
+        overlay.innerHTML = '<div class="panel menu"><h1 class="menu-title">FLIGHT RECORDS</h1>' +
+          VD.Storage.table() + '<div class="menu-actions">' + button('back', 'BACK / ESC') + '</div></div>';
       } else {
         overlay.innerHTML = '';
       }
 
       overlay.className = s === 'PLAYING' ? 'hidden' : '';
+      if (s !== 'PLAYING' && !g.capture) {
+        const first = overlay.querySelector('button');
+        if (first) first.focus({ preventScroll: true });
+      }
     },
 
     update: function (dt, g) {
       const I = VD.Input;
+      VD.Background.update(dt, g);
       if (States.cur === 'TITLE') { g.time += dt; VD.Particles.update(dt); }
 
-      if (I.hit('m')) VD.SFX.toggleMute();
+      if (I.hit('m')) {
+        VD.SFX.toggleMute();
+        if (States.cur === 'PAUSED' || States.cur === 'SETTINGS') States.set(States.cur, g);
+      }
+      if (States.cur === 'TITLE' || States.cur === 'PAUSED') {
+        if (I.hit('h')) { openMenu('HELP', g); return; }
+        if (I.hit('o')) { openMenu('SETTINGS', g); return; }
+        if (I.hit('l')) { openMenu('SCORES', g); return; }
+      }
 
       if (States.cur === 'TITLE') {
         if (I.hit('Enter') || I.hit(' ')) {
-          VD.SFX.resume();
-          g.reset();
-          States.set('PLAYING', g);
+          begin(g, true);
         }
       } else if (States.cur === 'PLAYING') {
-        if (I.hit('p')) {
+        if (I.hit('p') || I.hit('Escape')) {
           States.set('PAUSED', g);
         } else {
           g.step(dt);
@@ -93,7 +188,20 @@
           }
         }
       } else if (States.cur === 'PAUSED') {
-        if (I.hit('p') || I.hit('Enter')) States.set('PLAYING', g);
+        if (I.hit('r')) begin(g, false);
+        else if (I.hit('p') || I.hit('Enter') || I.hit('Escape')) States.set('PLAYING', g);
+      } else if (States.cur === 'STORY') {
+        g.time += dt;
+        VD.Story.update(dt);
+        if (I.hit('Escape')) VD.Story.launch(g);
+        else if (I.hit('Enter') || I.hit(' ')) VD.Story.advance(g);
+      } else if (States.cur === 'HELP') {
+        VD.Bestiary.update(dt);
+        if (I.hit('ArrowLeft')) VD.Bestiary.change(-1);
+        if (I.hit('ArrowRight')) VD.Bestiary.change(1);
+        if (I.hit('Escape')) States.set(returnState, g);
+      } else if (States.cur === 'SETTINGS' || States.cur === 'SCORES') {
+        if (I.hit('Escape')) States.set(returnState, g);
       } else if (States.cur === 'WAVE_CLEAR') {
         States.timer += dt;
         VD.Particles.update(dt);
@@ -108,6 +216,12 @@
           States.set('PLAYING', g);
         }
       }
+    },
+
+    action: action,
+
+    prepareShot: function (name, seed, g) {
+      return VD.Capture.prepare(name, seed, g);
     },
 
     draw: function (ctx, g) {

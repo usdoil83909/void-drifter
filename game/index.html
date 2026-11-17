@@ -33,14 +33,14 @@
 <div id="warning"></div>
 <div id="overlay"></div>
 
-<script src="input.js"></script>
-<script src="audio.js"></script>
-<script src="particles.js"></script>
-<script src="entities.js"></script>
-<script src="waves.js"></script>
-<script src="upgrade.js"></script>
-<script src="hud.js"></script>
-<script src="states.js"></script>
-<script src="game.js"></script>
+<!-- Native ES modules; bootstrap declares the complete dependency graph. -->
+<!-- All visuals are drawn locally, without image or font requests. -->
+<!-- Audio starts only after a launch or another explicit interaction. -->
+<!-- Capture routes: ?shot=title|play|boss|gameover&seed=1234 -->
+<!-- A capture freezes after two renders and exposes window.__shotReady. -->
+<!-- Keyboard and accessible buttons share the same state transitions. -->
+<!-- Flight records and preferences are stored only on this device. -->
+<!-- The simulation uses a fixed 60 Hz step on every display. -->
+<script type="module" src="bootstrap.js"></script>
 </body>
 </html>

@@ -1,0 +1,20 @@
+// Explicit dependency order, using native browser ES modules only.
+import './palette.js';
+import './storage.js';
+import './settings.js';
+import './input.js';
+import './audio.js';
+import './music.js';
+import './particles.js';
+import './entities.js';
+import './waves.js';
+import './armory.js';
+import './upgrade.js';
+import './hud.js';
+import './bestiary.js';
+import './story.js';
+import './background.js';
+import './telemetry.js';
+import './states.js';
+import './capture.js';
+import './game.js';
